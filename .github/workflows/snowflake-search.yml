@@ -6,13 +6,13 @@ on:
   workflow_dispatch:
     inputs:
       searchTerm:
-        description: 'Search term'
+        description: 'Search term to query'
         required: true
       marketCode:
-        description: 'Market code'
+        description: 'Market code (e.g., us, gb, au)'
         required: true
       languageCode:
-        description: 'Language code'
+        description: 'Language code (e.g., en, fr, es)'
         required: true
 
 jobs:
@@ -31,7 +31,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install snowflake-connector-python
+          pip install "snowflake-connector-python[pandas]"
 
       - name: Execute Snowflake query
         env:
@@ -40,14 +40,85 @@ jobs:
           SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
           SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
           SNOWFLAKE_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
+          SNOWFLAKE_ROLE: ACCOUNTADMIN
           SEARCH_TERM: ${{ github.event.client_payload.searchTerm || github.event.inputs.searchTerm }}
           MARKET_CODE: ${{ github.event.client_payload.marketCode || github.event.inputs.marketCode }}
           LANGUAGE_CODE: ${{ github.event.client_payload.languageCode || github.event.inputs.languageCode }}
-        run: python .github/scripts/execute_query.py
+        run: |
+          python - <<EOF
+          import os
+          import json
+          import snowflake.connector
+          
+          # Get environment variables
+          search_term = os.environ['SEARCH_TERM']
+          market_code = os.environ['MARKET_CODE']
+          language_code = os.environ['LANGUAGE_CODE']
+          
+          # Connect to Snowflake
+          conn = snowflake.connector.connect(
+              account=os.environ['SNOWFLAKE_ACCOUNT'],
+              user=os.environ['SNOWFLAKE_USER'],
+              password=os.environ['SNOWFLAKE_PASSWORD'],
+              warehouse=os.environ['SNOWFLAKE_WAREHOUSE'],
+              database=os.environ['SNOWFLAKE_DATABASE'],
+              role=os.environ['SNOWFLAKE_ROLE']
+          )
+          
+          try:
+              # Create cursor
+              cursor = conn.cursor()
+              
+              # Execute query
+              query = f"""
+                  SELECT 
+                      NAME as TITLE,
+                      SUPPORT_CENTER_URL,
+                      CONTENTFUL_URL,
+                      BODY as CONTENT,
+                      ARTICLE_ID
+                  FROM APP_SUPPORT.APP_SUPPORT.CDT_CONTENTFUL_CONTENT_V2 
+                  WHERE LOWER(HTML_REMOVED_BODY) ILIKE '%{search_term.lower()}%'
+                  AND ARTICLE_OR_MACRO_IS_MOST_RECENT_VERSION = true 
+                  AND BODY_IS_MOST_RECENT_VERSION = true 
+                  AND COUNTRY_CODE = '{market_code}'
+                  AND LANGUAGE_CODE = '{language_code}'
+                  AND PUBLISHED_STATUS = 'published'
+                  AND CONTENT_TYPE = 'Article'
+                  ORDER BY NAME
+              """
+              
+              cursor.execute(query)
+              
+              # Fetch results
+              results = cursor.fetchall()
+              columns = [desc[0] for desc in cursor.description]
+              
+              # Convert to list of dictionaries
+              formatted_results = [
+                  dict(zip(columns, row))
+                  for row in results
+              ]
+              
+              # Write results to file
+              with open('results.json', 'w', encoding='utf-8') as f:
+                  json.dump({
+                      'results': formatted_results,
+                      'metadata': {
+                          'search_term': search_term,
+                          'market_code': market_code,
+                          'language_code': language_code,
+                          'total_results': len(formatted_results)
+                      }
+                  }, f, ensure_ascii=False, indent=2)
+                  
+          finally:
+              conn.close()
+          EOF
 
       - name: Commit and push if there are changes
         run: |
-          git config --global user.name 'GitHub Action'
+          git config --global user.name 'GitHub Action Bot'
           git config --global user.email 'action@github.com'
           git add results.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Update search results" && git push)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update search results [skip ci]" && git push)
