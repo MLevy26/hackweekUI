@@ -272,62 +272,39 @@
     </div>
 
     <script>
-        async function handleSearch() {
-            const searchQuery = document.getElementById('searchTopic').value.trim();
-            const selectedMarket = document.getElementById('market').value;
-            const selectedLanguage = document.getElementById('language').value;
-            const resultsDiv = document.getElementById('searchResults');
+       async function handleSearch() {
+    const searchQuery = document.getElementById('searchTopic').value.trim();
+    const selectedMarket = document.getElementById('market').value;
+    const selectedLanguage = document.getElementById('language').value;
+    const resultsDiv = document.getElementById('searchResults');
 
-            if (!searchQuery) {
-                resultsDiv.innerHTML = '<div class="error-message">Please enter a search term</div>';
-                return;
-            }
+    if (!searchQuery) {
+        resultsDiv.innerHTML = '<div class="error-message">Please enter a search term</div>';
+        return;
+    }
 
-            // Show loading state
-            resultsDiv.innerHTML = '<div class="search-summary">Searching...</div>';
+    // Show loading state
+    resultsDiv.innerHTML = '<div class="search-summary">Searching...</div>';
 
-            try {
-                const query = `
-                    SELECT 
-                        NAME as TITLE,
-                        SUPPORT_CENTER_URL,
-                        CONTENTFUL_URL,
-                        BODY as CONTENT,
-                        ARTICLE_ID
-                    FROM APP_SUPPORT.APP_SUPPORT.CDT_CONTENTFUL_CONTENT_V2 
-                    WHERE LOWER(HTML_REMOVED_BODY) ILIKE '%${searchQuery.toLowerCase()}%'
-                    AND ARTICLE_OR_MACRO_IS_MOST_RECENT_VERSION = true 
-                    AND BODY_IS_MOST_RECENT_VERSION = true 
-                    AND COUNTRY_CODE = '${selectedMarket}'
-                    AND LANGUAGE_CODE = '${selectedLanguage}'
-                    AND PUBLISHED_STATUS = 'published'
-                    AND CONTENT_TYPE = 'Article'
-                    ORDER BY NAME
-                `;
+    try {
+        // Call Flask backend
+        const response = await fetch('http://localhost:5000/search', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                searchTerm: searchQuery,
+                marketCode: selectedMarket,
+                languageCode: selectedLanguage
+            })
+        });
 
-                // Call local Goose instance with correct API format
-                      const response = await fetch('http://127.0.0.1:60402/v1/tools/call', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'Access-Control-Allow-Origin': '*'
-                        },
-                        body: JSON.stringify({
-                            extension: "snowflake",
-                            tool: "execute_query",
-                            parameters: {
-                                query: query
-                            }
-                        })
-                    });
+        if (!response.ok) {
+            throw new Error(`Error from backend: ${response.statusText}`);
+        }
 
-                if (!response.ok) {
-                    throw new Error(`Error from Goose service: ${response.statusText}`);
-                }
-
-                const data = await response.json();
-                console.log("Query results:", data);
+        const data = await response.json();
 
                 if (data && data.results && data.results.length > 0) {
                     resultsDiv.innerHTML = `
@@ -375,17 +352,17 @@
                 } else {
                     resultsDiv.innerHTML = '<div class="no-results">No matching content found</div>';
                 }
-            } catch (error) {
+             } catch (error) {
                 console.error('Search error:', error);
                 resultsDiv.innerHTML = `
                     <div class="error-message">
                         An error occurred while searching: ${error.message}<br><br>
-                        Please ensure:
-                        1. Goose is running locally (localhost:60402)<br>
-                        2. The Snowflake extension is configured in your Goose instance<br>
-                        3. Your browser allows connections to localhost
-                    </div>`;
-            }
+                        Please ensure: <br>
+                        1. The Flask backend server is running on localhost:5000<br>
+                        2. Your browser allows connections to localhost<br>
+                        3. Check the server logs for more details
+                </div>`;
+}
         }
 
         function compareContent(articleId) {
