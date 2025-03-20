@@ -35,10 +35,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install "snowflake-connector-python[pandas]"
+          pip install cryptography
 
       - name: Execute Snowflake query
         env:
-          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_ACCOUNT: square
           SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
           SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
           SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
@@ -53,6 +54,7 @@ jobs:
           import json
           import snowflake.connector
           import sys
+          from snowflake.connector.errors import DatabaseError, ProgrammingError
           
           print("Starting Snowflake query execution...")
           
@@ -73,18 +75,22 @@ jobs:
               print(f"Role: {os.environ['SNOWFLAKE_ROLE']}")
               
               conn = snowflake.connector.connect(
-                  account=os.environ['SNOWFLAKE_ACCOUNT'],
-                  user=os.environ['SNOWFLAKE_USER'],
+                  account=os.environ['SNOWFLAKE_ACCOUNT'].lower(),
+                  user=os.environ['SNOWFLAKE_USER'].upper(),
                   password=os.environ['SNOWFLAKE_PASSWORD'],
                   warehouse=os.environ['SNOWFLAKE_WAREHOUSE'],
                   database=os.environ['SNOWFLAKE_DATABASE'],
-                  role=os.environ['SNOWFLAKE_ROLE']
+                  role=os.environ['SNOWFLAKE_ROLE'].upper()
               )
               
               print("Connected to Snowflake successfully")
               
-              # Create cursor
+              # Test connection
               cursor = conn.cursor()
+              print("Testing connection...")
+              cursor.execute("SELECT CURRENT_USER(), CURRENT_ROLE(), CURRENT_WAREHOUSE(), CURRENT_DATABASE()")
+              result = cursor.fetchone()
+              print(f"Connected as: {result}")
               
               # Execute query
               query = f"""
@@ -138,8 +144,16 @@ jobs:
                   
               print("Results saved successfully")
               
+          except (DatabaseError, ProgrammingError) as e:
+              print(f"Snowflake Error occurred: {str(e)}", file=sys.stderr)
+              print(f"Error type: {type(e)}", file=sys.stderr)
+              print(f"Error code: {e.errno}", file=sys.stderr)
+              print(f"Error state: {e.sqlstate}", file=sys.stderr)
+              import traceback
+              traceback.print_exc()
+              sys.exit(1)
           except Exception as e:
-              print(f"Error occurred: {str(e)}", file=sys.stderr)
+              print(f"General Error occurred: {str(e)}", file=sys.stderr)
               print(f"Error type: {type(e)}", file=sys.stderr)
               import traceback
               traceback.print_exc()
