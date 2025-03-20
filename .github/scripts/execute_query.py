@@ -50,6 +50,7 @@ def execute_snowflake_query():
         formatted_results = [
             dict(zip(columns, row))
             for row in results
+        ]  # Added closing bracket here
         
         # Write results to file
         with open('results.json', 'w', encoding='utf-8') as f:
