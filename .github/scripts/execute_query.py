@@ -3,10 +3,14 @@ import json
 import snowflake.connector
 
 def execute_snowflake_query():
+    print("Starting function...")
+    
     # Get environment variables
     search_term = os.environ['SEARCH_TERM']
     market_code = os.environ['MARKET_CODE']
     language_code = os.environ['LANGUAGE_CODE']
+    
+    print(f"Got environment variables: {search_term}, {market_code}, {language_code}")
     
     # Connect to Snowflake
     conn = snowflake.connector.connect(
@@ -18,6 +22,8 @@ def execute_snowflake_query():
     )
 
     try:
+        print("Connected to Snowflake")
+        
         # Create cursor
         cursor = conn.cursor()
 
@@ -40,17 +46,19 @@ def execute_snowflake_query():
             ORDER BY NAME
         """
         
+        print(f"Executing query: {query}")
         cursor.execute(query)
         
         # Fetch results
         results = cursor.fetchall()
         columns = [desc[0] for desc in cursor.description]
         
+        print(f"Got {len(results)} results")
+        
         # Convert to list of dictionaries
-        formatted_results = [
-            dict(zip(columns, row))
-            for row in results
-        ]  # Added closing bracket here
+        formatted_results = [dict(zip(columns, row)) for row in results]
+        
+        print("Writing results to file...")
         
         # Write results to file
         with open('results.json', 'w', encoding='utf-8') as f:
@@ -64,8 +72,11 @@ def execute_snowflake_query():
                 }
             }, f, ensure_ascii=False, indent=2)
             
+        print("Results written successfully")
+            
     finally:
         conn.close()
+        print("Connection closed")
 
 if __name__ == '__main__':
     execute_snowflake_query()
