@@ -273,56 +273,44 @@
     </div>
 
     <script>
-        async function handleSearch() {
-            const searchQuery = document.getElementById('searchTopic').value.trim();
-            const selectedMarket = document.getElementById('market').value;
-            const selectedLanguage = document.getElementById('language').value;
-            const resultsDiv = document.getElementById('searchResults');
+       async function handleSearch() {
+    const searchQuery = document.getElementById('searchTopic').value.trim();
+    const selectedMarket = document.getElementById('market').value;
+    const selectedLanguage = document.getElementById('language').value;
+    const resultsDiv = document.getElementById('searchResults');
 
-            if (!searchQuery) {
-                resultsDiv.innerHTML = '<div class="error-message">Please enter a search term</div>';
-                return;
-            }
+    if (!searchQuery) {
+        resultsDiv.innerHTML = '<div class="error-message">Please enter a search term</div>';
+        return;
+    }
 
-            // Show loading state
-            resultsDiv.innerHTML = '<div class="search-summary">Searching...</div>';
+    // Show loading state
+    resultsDiv.innerHTML = '<div class="search-summary">Searching...</div>';
 
-            try {
-                // Use the Goose Snowflake extension
-                const response = await fetch('/goose/extensions/snowflake/execute_query', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        query: `
-                            SELECT 
-                                NAME as TITLE,
-                                SUPPORT_CENTER_URL,
-                                CONTENTFUL_URL,
-                                BODY as CONTENT,
-                                ARTICLE_ID
-                            FROM APP_SUPPORT.APP_SUPPORT.CDT_CONTENTFUL_CONTENT_V2 
-                            WHERE LOWER(HTML_REMOVED_BODY) ILIKE '%${searchQuery.toLowerCase()}%'
-                            AND ARTICLE_OR_MACRO_IS_MOST_RECENT_VERSION = true 
-                            AND BODY_IS_MOST_RECENT_VERSION = true 
-                            AND COUNTRY_CODE = '${selectedMarket}'
-                            AND LANGUAGE_CODE = '${selectedLanguage}'
-                            AND PUBLISHED_STATUS = 'published'
-                            AND CONTENT_TYPE = 'Article'
-                            ORDER BY NAME
-                        `
-                    })
-                });
+    try {
+        const query = `
+            SELECT 
+                NAME as TITLE,
+                SUPPORT_CENTER_URL,
+                CONTENTFUL_URL,
+                BODY as CONTENT,
+                ARTICLE_ID
+            FROM APP_SUPPORT.APP_SUPPORT.CDT_CONTENTFUL_CONTENT_V2 
+            WHERE LOWER(HTML_REMOVED_BODY) ILIKE '%${searchQuery.toLowerCase()}%'
+            AND ARTICLE_OR_MACRO_IS_MOST_RECENT_VERSION = true 
+            AND BODY_IS_MOST_RECENT_VERSION = true 
+            AND COUNTRY_CODE = '${selectedMarket}'
+            AND LANGUAGE_CODE = '${selectedLanguage}'
+            AND PUBLISHED_STATUS = 'published'
+            AND CONTENT_TYPE = 'Article'
+            ORDER BY NAME
+        `;
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+        // Use the Snowflake extension directly
+        const data = await snowflake.execute_query(query);
+        console.log("Query results:", data);
 
-                const data = await response.json();
-                console.log("Query results:", data);
-
-                if (data && data.results && data.results.length > 0) {
+        if (data && data.results && data.results.length > 0) {
                     resultsDiv.innerHTML = `
                         <h3>Search Results</h3>
                         <div class="search-summary">Found ${data.results.length} matching articles</div>
@@ -365,8 +353,8 @@
                             `;
                         }).join('')}
                     `;
-                } else {
-                    resultsDiv.innerHTML = '<div class="no-results">No matching content found</div>';
+               } else {
+            resultsDiv.innerHTML = '<div class="no-results">No matching content found</div>';
                 }
             } catch (error) {
                 console.error('Search error:', error);
