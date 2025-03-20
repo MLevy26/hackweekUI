@@ -306,21 +306,21 @@
                 `;
 
                 // Call local Goose instance with correct API format
-                       const response = await fetch('http://127.0.0.1:54548/v1/tools/call', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'Access-Control-Allow-Origin': '*'
-                    },
-                    body: JSON.stringify({
-                        extension: "snowflake",
-                        tool: "execute_query",
-                        parameters: {
-                            query: query
-                        }
-                    })
-                });
+                      const response = await fetch('http://127.0.0.1:54548/v1/tools/call', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'Access-Control-Allow-Origin': '*'
+                        },
+                        body: JSON.stringify({
+                            extension: "snowflake",
+                            tool: "execute_query",
+                            parameters: {
+                                query: query
+                            }
+                        })
+                    });
 
                 if (!response.ok) {
                     throw new Error(`Error from Goose service: ${response.statusText}`);
