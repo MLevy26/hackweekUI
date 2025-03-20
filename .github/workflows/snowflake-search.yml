@@ -15,6 +15,9 @@ on:
         description: 'Language code (e.g., en, fr, es)'
         required: true
 
+permissions:
+  contents: write
+  
 jobs:
   execute-search:
     runs-on: ubuntu-latest
@@ -50,12 +53,17 @@ jobs:
           import json
           import snowflake.connector
           
+          print("Starting Snowflake query execution...")
+          
           # Get environment variables
           search_term = os.environ['SEARCH_TERM']
           market_code = os.environ['MARKET_CODE']
           language_code = os.environ['LANGUAGE_CODE']
           
+          print(f"Search parameters: term='{search_term}', market='{market_code}', language='{language_code}'")
+          
           # Connect to Snowflake
+          print("Connecting to Snowflake...")
           conn = snowflake.connector.connect(
               account=os.environ['SNOWFLAKE_ACCOUNT'],
               user=os.environ['SNOWFLAKE_USER'],
@@ -66,6 +74,8 @@ jobs:
           )
           
           try:
+              print("Connected to Snowflake successfully")
+              
               # Create cursor
               cursor = conn.cursor()
               
@@ -88,11 +98,17 @@ jobs:
                   ORDER BY NAME
               """
               
+              print("Executing query...")
+              print(f"Query: {query}")
+              
               cursor.execute(query)
               
               # Fetch results
+              print("Fetching results...")
               results = cursor.fetchall()
               columns = [desc[0] for desc in cursor.description]
+              
+              print(f"Found {len(results)} results")
               
               # Convert to list of dictionaries
               formatted_results = [
@@ -101,6 +117,7 @@ jobs:
               ]
               
               # Write results to file
+              print("Writing results to file...")
               with open('results.json', 'w', encoding='utf-8') as f:
                   json.dump({
                       'results': formatted_results,
@@ -112,7 +129,13 @@ jobs:
                       }
                   }, f, ensure_ascii=False, indent=2)
                   
+              print("Results saved successfully")
+              
+          except Exception as e:
+              print(f"Error occurred: {str(e)}")
+              raise
           finally:
+              print("Closing Snowflake connection...")
               conn.close()
           EOF
 
