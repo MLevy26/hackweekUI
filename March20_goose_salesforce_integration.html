@@ -306,10 +306,11 @@
                 `;
 
                 // Call local Goose instance with correct API format
-                const response = await fetch('http://localhost:54548/v1/tools/call', {
+                    const response = await fetch('http://localhost:54548/v1/tools/call', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify({
                         extension: "snowflake",
