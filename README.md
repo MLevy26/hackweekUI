@@ -203,7 +203,7 @@ It may require you to open terminal and copy paste steps over
    - Ensure CORS extension is enabled in your browser
   
 3. **Flast Backend Set Up Issues**
-   - If you are having issues stalling or updating packages in terminal,  rerun step 1 to ensure that the dev environment is live.
+   - If you are having issues stalling or updating packages in terminal,  rerun step 1-3 to ensure that the dev environment is live. Make sure the WARP VPN is on and authenticated.
    - If you are running into an error in terminal due to requiring a password, ask the user to open terminal, run the relevant command, enter the password, and return to goose.
 
 5. **Common Errors**
