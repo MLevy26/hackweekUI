@@ -290,6 +290,26 @@
     cursor: default !important;
     pointer-events: none !important;
 }
+.subtopic-heading-link,
+.h6.gap-none.ignore-section,
+.collapse.fade,
+[data-transition-state],
+[data-transition-target],
+[data-transition-types] {
+    transition: none !important;
+    animation: none !important;
+    pointer-events: none !important;
+}
+
+/* Force all content to be visible initially */
+.collapse.fade {
+    display: block !important;
+    height: auto !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+    transition: none !important;
+}
+
 .collapse.fade,
 [data-transition-types="collapse fade"],
 [style*="height: 0"],
@@ -495,6 +515,70 @@
             }
         }
 
+  function forceExpandAllSections() {
+    // Find all collapsible sections
+    document.querySelectorAll('.collapse.fade').forEach(section => {
+        // Remove inline styles
+        section.style.removeProperty('height');
+        section.style.removeProperty('opacity');
+        section.style.removeProperty('overflow');
+        
+        // Force expand
+        section.style.height = 'auto';
+        section.style.opacity = '1';
+        section.style.overflow = 'visible';
+        section.style.display = 'block';
+    });
+
+    // Add these new selectors
+    document.querySelectorAll('.subtopic-heading-link, .h6.gap-none.ignore-section').forEach(header => {
+        header.style.pointerEvents = 'none';
+        header.style.cursor = 'default';
+        if (header.hasAttribute('href')) {
+            header.removeAttribute('href');
+        }
+    });
+
+    // Disable any click events that might collapse sections
+    document.querySelectorAll('.collapsible-component, .collapsible-component-element').forEach(element => {
+        element.style.pointerEvents = 'auto';
+        const clickHandler = (e) => {
+            if (e.target.closest('.subtopic-heading-link, .h6.gap-none.ignore-section')) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        };
+        element.addEventListener('click', clickHandler, true);
+    });
+
+    // Remove transition states
+    document.querySelectorAll('[data-transition-state]').forEach(el => {
+        el.removeAttribute('data-transition-state');
+    });
+
+    // Remove transition targets
+    document.querySelectorAll('[data-transition-target]').forEach(el => {
+        el.removeAttribute('data-transition-target');
+    });
+}
+
+// Call this function when content loads
+document.addEventListener('DOMContentLoaded', () => {
+    // Initial expansion
+    forceExpandAllSections();
+    
+    // Create an observer to watch for content changes
+    const observer = new MutationObserver(() => {
+        forceExpandAllSections();
+    });
+    
+    // Start observing the search results container
+    observer.observe(document.getElementById('searchResults'), {
+        childList: true,
+        subtree: true
+    });
+});
+        
         function compareContent(articleId) {
             const comparisonView = document.getElementById(`comparison-${articleId}`);
             const editedContent = document.getElementById(`edited-${articleId}`);
