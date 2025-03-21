@@ -1,9 +1,5 @@
 # hackweekUI
-UI for searching content in Snowflake
-
-## Content Compass Setup
-
-A tool for searching and managing Square Help content through Snowflake, with SSO authentication.
+UI for searching Squareup Center Content via Snowflake
 
 ### Prerequisites
 
@@ -12,29 +8,34 @@ A tool for searching and managing Square Help content through Snowflake, with SS
 3. Goose, to follow the installation instructions, with computer controller enabled
 
 ### Installation Steps
+Non Technical Users: Copy Paste the below instructions into Goose and it can set up most of the backend for you! 
+It may require you to open terminal and copy paste steps over
 
-
-1. **Make sure dev environment is set up correctly in terminal**
+1. **Make sure dev environment is set up correctly: install brew**
    ```bash
-        # Run bootstrap if needed to install brew
         /usr/bin/curl -fsSL https://artifactory.global.square/artifactory/devenv/bootstrap/sq-bootstrap | /bin/bash
-        # Set up pip config
+       
+   ```
+
+2. **Make sure dev environment is set up correctly:  Set up pip config
+    ```bash
         rm -f ~/.pip/pip.conf ~/.config/pip/pip.conf
-        python3 -m pip config set global.index-url https://pypi.block-artifacts.com/block-pypi/simple
-        # Install poetry and setup certs
+        python3 -m pip config set global.index-url https://pypi.block-artifacts.com/block-pypi/simple      
+     ```
+
+3.  **Make sure dev environment is set up correctly: Install poetry and setup certs ***
+       ```bash
         curl -sSL https://install.python-poetry.org | POETRY_VERSION=1.3.1 python3 -
         export PATH="${PATH}:${HOME}/.local/bin"
         echo 'PATH="${PATH}:${HOME}/.local/bin"' >> ~/.zshrc
         poetry config certificates.artifactory.cert /opt/homebrew/etc/openssl@1.1/cert.pem
-   ```
-
-2.  **Create Backend Directory**
+       ```
+4.   **Create Backend Directory**
    ```bash
    mkdir content-compass-backend
    cd content-compass-backend
    ```
-
-3. **Set Up Python Virtual Environment**
+5. **Set Up Python Virtual Environment**
    ```bash
    # Create virtual environment
    python3 -m venv venv
@@ -45,16 +46,14 @@ A tool for searching and managing Square Help content through Snowflake, with SS
    # On Windows:
    # .\venv\Scripts\activate
    ```
-
-4. **Install Required Packages**
+6. **Install Required Packages**
    ```bash
    pip install flask==2.0.1
    pip install flask-cors==3.0.10
    pip install snowflake-connector-python[pandas]
    pip install python-dotenv
    ```
-
-5. **Create Flask Backend File**
+7. **Create Flask Backend File**
    Create a new file named `app.py` with the provided Flask backend code.
    Replace the "origins" with the cloned github repo name
       ```bash
@@ -169,8 +168,7 @@ A tool for searching and managing Square Help content through Snowflake, with SS
       if __name__ == '__main__':
           app.run(debug=True, port=5000)
     ```
-
-6. **Start the Flask Server**
+8. **Start the Flask Server**
    ```bash
    python app.py
    ```
@@ -203,8 +201,12 @@ A tool for searching and managing Square Help content through Snowflake, with SS
    - Verify Flask server is running (http://localhost:5000)
    - Check for any error messages in the terminal
    - Ensure CORS extension is enabled in your browser
+  
+3. **Flast Backend Set Up Issues**
+   - If you are having issues stalling or updating packages in terminal,  rerun step 1 to ensure that the dev environment is live.
+   - If you are running into an error in terminal due to requiring a password, ask the user to open terminal, run the relevant command, enter the password, and return to goose.
 
-3. **Common Errors**
+5. **Common Errors**
    - "Connection refused": Flask server not running
    - "CORS error": Enable CORS in your browser
    - "SSO error": Check your Square login
