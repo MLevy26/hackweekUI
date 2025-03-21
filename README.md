@@ -55,7 +55,7 @@ It may require you to open terminal and copy paste steps over
    ```
 7. **Create Flask Backend File**
    Create a new file named `app.py` with the provided Flask backend code.
-   Replace the "origins" with the cloned github repo name
+   Make sure to include the CORS context
       ```bash
       from flask import Flask, request, jsonify
       from flask_cors import CORS
