@@ -290,7 +290,41 @@
     cursor: default !important;
     pointer-events: none !important;
 }
+.collapse.fade,
+[data-transition-types="collapse fade"],
+[style*="height: 0"],
+[style*="opacity: 0"],
+[style*="overflow: hidden"] {
+    height: auto !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+    display: block !important;
+}
 
+/* Target Square Help's heading structure */
+.h6.gap-none.ignore-section,
+[data-transition-state="on"],
+[data-transition-target*="sub_topic_list_"] {
+    height: auto !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+    display: block !important;
+}
+
+/* Force all collapsible content to show */
+.collapsible-component,
+.collapsible-component-element,
+.border-bottom,
+.overflow-hidden,
+.pad-horz-small,
+.pad-bottom-small {
+    height: auto !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+    display: block !important;
+}
+
+        
 /* Additional overrides for common collapse patterns */
 [aria-expanded="false"],
 [aria-hidden="true"],
