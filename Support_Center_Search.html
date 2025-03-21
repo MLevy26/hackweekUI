@@ -229,33 +229,80 @@
             margin: 12px 0;
         }
 
-        /* Styles for expanded H2 headings */
-        .editable-content h2,
-        .comparison-content h2 {
-            display: block !important;
-            visibility: visible !important;
-            height: auto !important;
-            max-height: none !important;
-            overflow: visible !important;
-            opacity: 1 !important;
-        }
+      .editable-content h1, .editable-content h2, .editable-content h3, .editable-content h4, .editable-content h5, .editable-content h6,
+.comparison-content h1, .comparison-content h2, .comparison-content h3, .comparison-content h4, .comparison-content h5, .comparison-content h6,
+.editable-content details, .editable-content summary,
+.comparison-content details, .comparison-content summary,
+.editable-content [data-toggle],
+.comparison-content [data-toggle],
+.editable-content .collapse,
+.comparison-content .collapse,
+.editable-content .collapsible,
+.comparison-content .collapsible,
+.editable-content .expandable,
+.comparison-content .expandable {
+    display: block !important;
+    visibility: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    opacity: 1 !important;
+    position: static !important;
+    transform: none !important;
+    transition: none !important;
+    clip: auto !important;
+    clip-path: none !important;
+    pointer-events: auto !important;
+}
 
-        .editable-content h2 *,
-        .comparison-content h2 * {
-            display: inherit !important;
-            visibility: visible !important;
-            height: auto !important;
-            max-height: none !important;
-            overflow: visible !important;
-            opacity: 1 !important;
-        }
+/* Force all nested content to be visible */
+.editable-content h1 *, .editable-content h2 *, .editable-content h3 *, .editable-content h4 *, .editable-content h5 *, .editable-content h6 *,
+.comparison-content h1 *, .comparison-content h2 *, .comparison-content h3 *, .comparison-content h4 *, .comparison-content h5 *, .comparison-content h6 *,
+.editable-content details *, .editable-content summary *,
+.comparison-content details *, .comparison-content summary *,
+.editable-content [data-toggle] *,
+.comparison-content [data-toggle] *,
+.editable-content .collapse *,
+.comparison-content .collapse *,
+.editable-content .collapsible *,
+.comparison-content .collapsible *,
+.editable-content .expandable *,
+.comparison-content .expandable * {
+    display: inherit !important;
+    visibility: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    opacity: 1 !important;
+    position: static !important;
+    transform: none !important;
+    transition: none !important;
+    clip: auto !important;
+    clip-path: none !important;
+}
 
-        .editable-content h2,
-        .comparison-content h2 {
-            margin: 1.5em 0 0.5em 0;
-            padding: 0.5em 0;
-            border-bottom: 1px solid #E5E7EB;
-        }
+/* Style for all headers */
+.editable-content h1, .editable-content h2, .editable-content h3, .editable-content h4, .editable-content h5, .editable-content h6,
+.comparison-content h1, .comparison-content h2, .comparison-content h3, .comparison-content h4, .comparison-content h5, .comparison-content h6 {
+    margin: 1.5em 0 0.5em 0;
+    padding: 0.5em 0;
+    border-bottom: 1px solid #E5E7EB;
+    cursor: default !important;
+    pointer-events: none !important;
+}
+
+/* Additional overrides for common collapse patterns */
+[aria-expanded="false"],
+[aria-hidden="true"],
+.collapsed,
+.hidden,
+.d-none,
+[style*="display: none"],
+[style*="visibility: hidden"] {
+    display: block !important;
+    visibility: visible !important;
+    height: auto !important;
+}
     </style>
 </head>
 <body>
