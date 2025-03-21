@@ -13,13 +13,8 @@ A tool for searching and managing Square Help content through Snowflake, with SS
 
 ### Installation Steps
 
-1. **Clone the Repository**
-   ```bash
-   git clone https://github.com/MLevy26/hackweekUI.git
-   cd hackweekUI
-   ```
 
-2. **Make sure dev environment is set up correctly**
+1. **Make sure dev environment is set up correctly in terminal**
    ```bash
         # Run bootstrap if needed to install brew
         /usr/bin/curl -fsSL https://artifactory.global.square/artifactory/devenv/bootstrap/sq-bootstrap | /bin/bash
@@ -33,13 +28,13 @@ A tool for searching and managing Square Help content through Snowflake, with SS
         poetry config certificates.artifactory.cert /opt/homebrew/etc/openssl@1.1/cert.pem
    ```
 
-3.  **Create Backend Directory**
+2.  **Create Backend Directory**
    ```bash
    mkdir content-compass-backend
    cd content-compass-backend
    ```
 
-4. **Set Up Python Virtual Environment**
+3. **Set Up Python Virtual Environment**
    ```bash
    # Create virtual environment
    python3 -m venv venv
@@ -51,7 +46,7 @@ A tool for searching and managing Square Help content through Snowflake, with SS
    # .\venv\Scripts\activate
    ```
 
-5. **Install Required Packages**
+4. **Install Required Packages**
    ```bash
    pip install flask==2.0.1
    pip install flask-cors==3.0.10
@@ -59,7 +54,7 @@ A tool for searching and managing Square Help content through Snowflake, with SS
    pip install python-dotenv
    ```
 
-6. **Create Flask Backend File**
+5. **Create Flask Backend File**
    Create a new file named `app.py` with the provided Flask backend code.
    Replace the "origins" with the cloned github repo name
       ```bash
@@ -175,15 +170,12 @@ A tool for searching and managing Square Help content through Snowflake, with SS
           app.run(debug=True, port=5000)
     ```
 
-7. **Start the Flask Server**
+6. **Start the Flask Server**
    ```bash
    python app.py
    ```
    The server will start on http://localhost:5000
    
-9. **Ensure you have Github Pages turned on**
-    From your repository, navigate to settings, Pages
-    Enable github pages for the branch with your search repo
 
 ### Using the Application
 
