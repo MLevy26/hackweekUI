@@ -17,13 +17,13 @@ It may require you to open terminal and copy paste steps over
        
    ```
 
-2. **Make sure dev environment is set up correctly:  Set up pip config
+2. **Make sure dev environment is set up correctly:  Set up pip config**
     ```bash
         rm -f ~/.pip/pip.conf ~/.config/pip/pip.conf
         python3 -m pip config set global.index-url https://pypi.block-artifacts.com/block-pypi/simple      
      ```
 
-3.  **Make sure dev environment is set up correctly: Install poetry and setup certs ***
+3.  **Make sure dev environment is set up correctly: Install poetry and setup certs**
        ```bash
         curl -sSL https://install.python-poetry.org | POETRY_VERSION=1.3.1 python3 -
         export PATH="${PATH}:${HOME}/.local/bin"
