@@ -7,9 +7,9 @@ A tool for searching and managing Square Help content through Snowflake, with SS
 
 ### Prerequisites
 
-1. Python 3.11 or higher
-2. Square LDAP account with access to Snowflake and App_suppor tables
-3. Git (for cloning the repository)
+1. Square LDAP account with access to Snowflake and App_support tables
+2. Git (for cloning the repository)
+3. Goose, to follow the installation instructions, with computer controller enabled
 
 ### Installation Steps
 
@@ -19,7 +19,7 @@ A tool for searching and managing Square Help content through Snowflake, with SS
    cd hackweekUI
    ```
 
-2.** Make sure dev environment is set up correctly
+2. **Make sure dev environment is set up correctly**
    ```bash
         # Run bootstrap if needed to install brew
         /usr/bin/curl -fsSL https://artifactory.global.square/artifactory/devenv/bootstrap/sq-bootstrap | /bin/bash
@@ -61,16 +61,134 @@ A tool for searching and managing Square Help content through Snowflake, with SS
 
 6. **Create Flask Backend File**
    Create a new file named `app.py` with the provided Flask backend code.
+   Replace the "origins" with the cloned github repo name
+      ```bash
+      from flask import Flask, request, jsonify
+      from flask_cors import CORS
+      import snowflake.connector
+      from dotenv import load_dotenv
+      import os
+   
+      # Load environment variables
+      load_dotenv()
+
+      app = Flask(__name__)
+      # Configure CORS
+      CORS(app, resources={
+          r"/*": {
+              "origins": ["https://mlevy26.github.io", "http://localhost:*"],
+              "methods": ["GET", "POST", "OPTIONS"],
+              "allow_headers": ["Content-Type"],
+          }
+      })
+      
+      @app.route('/health', methods=['GET'])
+      def health_check():
+          return jsonify({'status': 'healthy'})
+      
+      @app.route('/search', methods=['POST', 'OPTIONS'])
+      def search():
+          # Handle preflight request
+          if request.method == 'OPTIONS':
+              return '', 204
+              
+          try:
+              data = request.json
+              if not data:
+                  return jsonify({'error': 'No data provided'}), 400
+      
+              required_fields = ['searchTerm', 'marketCode', 'languageCode', 'userLdap']
+              if not all(field in data for field in required_fields):
+                  return jsonify({'error': 'Missing required fields'}), 400
+      
+              search_term = data['searchTerm']
+              market_code = data['marketCode']
+              language_code = data['languageCode']
+              user_ldap = data['userLdap'].lower().strip()
+      
+              # Configure Snowflake with user-specific details
+              snowflake_config = {
+                  'user': f"{user_ldap}@squareup.com",
+                  'account': 'square',
+                  'warehouse': 'ADHOC__MEDIUM',
+                  'database': 'APP_SUPPORT',
+                  'role': user_ldap.upper(),
+                  'authenticator': 'externalbrowser'
+              }
+      
+              print(f"Connecting to Snowflake with user: {snowflake_config['user']}")
+              # Connect to Snowflake using SSO
+              conn = snowflake.connector.connect(**snowflake_config)
+              print("Connected successfully!")
+              
+              try:
+                  cursor = conn.cursor()
+                  query = """
+                      SELECT 
+                          NAME as TITLE,
+                          SUPPORT_CENTER_URL,
+                          CONTENTFUL_URL,
+                          BODY as CONTENT,
+                          ARTICLE_ID
+                      FROM APP_SUPPORT.APP_SUPPORT.CDT_CONTENTFUL_CONTENT_V2 
+                      WHERE LOWER(HTML_REMOVED_BODY) ILIKE %s
+                      AND ARTICLE_OR_MACRO_IS_MOST_RECENT_VERSION = true 
+                      AND BODY_IS_MOST_RECENT_VERSION = true 
+                      AND COUNTRY_CODE = %s
+                      AND LANGUAGE_CODE = %s
+                      AND PUBLISHED_STATUS = 'published'
+                      AND CONTENT_TYPE = 'Article'
+                      ORDER BY NAME
+                  """
+                  
+                  print(f"Executing query with params: {search_term}, {market_code}, {language_code}")
+                  cursor.execute(query, (f"%{search_term.lower()}%", market_code, language_code))
+                  results = cursor.fetchall()
+                  columns = [desc[0] for desc in cursor.description]
+                  
+                  formatted_results = [dict(zip(columns, row)) for row in results]
+                  print(f"Found {len(formatted_results)} results")
+                  
+                  return jsonify({
+                      'results': formatted_results,
+                      'metadata': {
+                          'searchTerm': search_term,
+                          'marketCode': market_code,
+                          'languageCode': language_code,
+                          'totalResults': len(formatted_results)
+                      }
+                  })
+                  
+              finally:
+                  cursor.close()
+                  conn.close()
+                  print("Connection closed")
+                  
+          except snowflake.connector.errors.ProgrammingError as e:
+              print(f"Snowflake error: {str(e)}")
+              return jsonify({'error': f'Snowflake error: {str(e)}'}), 500
+          except Exception as e:
+              print(f"Server error: {str(e)}")
+              return jsonify({'error': f'Server error: {str(e)}'}), 500
+      
+      if __name__ == '__main__':
+          app.run(debug=True, port=5000)
+    ```
 
 7. **Start the Flask Server**
    ```bash
    python app.py
    ```
    The server will start on http://localhost:5000
+   
+9. **Ensure you have Github Pages turned on**
+    From your repository, navigate to settings, Pages
+    Enable github pages for the branch with your search repo
 
 ### Using the Application
 
-1. Access the UI at: https://mlevy26.github.io/hackweekUI/Support_Center_Search.html
+1. Access the UI at: 
+   https://mlevy26.github.io/hackweekUI/Support_Center_Search.html
 
 2. Enter your:
    - Square LDAP (without @squareup.com)
